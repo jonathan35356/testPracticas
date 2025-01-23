@@ -1,14 +1,16 @@
-
 import express from 'express';
-import mongoose  from 'mongoose';
+import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import cors from 'cors';
+
 const app = express();
 
 // Middleware
 app.use(express.json());
 app.use(cors());
+
+const JWT_SECRET = 'secretkey'; // Definimos la clave secreta en una constante
 
 const url = 'mongodb://localhost:27017/task_manager'; // Cambia el nombre de la base de datos según lo que uses
 
@@ -19,8 +21,6 @@ mongoose.connect(url)
   .catch((err) => {
     console.error('Error conectando a MongoDB:', err);
   });
-
-
 
 // Modelos
 const UserSchema = new mongoose.Schema({
@@ -45,23 +45,18 @@ const Task = mongoose.model('Task', TaskSchema);
 app.post('/register', async (req, res) => {
   const { name, email, password } = req.body;
 
-  // Validar datos requeridos
   if (!name || !email || !password) {
     return res.status(400).json({ error: 'Todos los campos son obligatorios' });
   }
 
   try {
-    // Hashear la contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Crear y guardar usuario
     const user = new User({ name, email, password: hashedPassword });
     await user.save();
 
     res.status(201).json({ message: 'Usuario registrado con éxito' });
   } catch (error) {
     if (error.code === 11000) {
-      // Error de duplicado en el campo email
       res.status(400).json({ error: 'El correo ya está registrado' });
     } else {
       res.status(400).json({ error: error.message });
@@ -69,49 +64,38 @@ app.post('/register', async (req, res) => {
   }
 });
 
-
-const findUserByUsername = async (username) => {
-  try {
-    return await User.findOne({ username });
-  } catch (error) {
-    console.error('Error buscando el usuario:', error);
-    throw error;
-  }
-};
-
-
-
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
-  // Buscar usuario en la base de datos por email
-  const user = await User.findOne({ email });  // Usar "email" en lugar de "username"
+  const user = await User.findOne({ email });
   if (!user) {
     return res.status(401).json({ message: 'Usuario no encontrado' });
   }
 
-  // Comparar la contraseña (esto asume que estás utilizando bcrypt para hashing)
   const validPassword = await bcrypt.compare(password, user.password);
   if (!validPassword) {
     return res.status(401).json({ message: 'Contraseña incorrecta' });
   }
 
-  // Generar el token JWT
-  const token = jwt.sign({ userId: user._id }, 'secretkey', { expiresIn: '1h' });
+  // Generar el token JWT usando la clave secreta
+  const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
 
-  // Enviar el token al cliente
   res.json({ token });
 });
 
-
-
 // Middleware de autenticación
 const authMiddleware = (req, res, next) => {
-  const token = req.headers['authorization'];
-  if (!token) return res.status(401).json({ error: 'Acceso denegado' });
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Acceso denegado. Token requerido.' });
+  }
+
+  const token = authHeader.split(' ')[1];
+
   try {
-    const verified = jwt.verify(token, 'secreto');
-    req.userId = verified.id;
+    // Verificar el token usando la clave secreta
+    const verified = jwt.verify(token, JWT_SECRET);
+    req.userId = verified.userId; // Corregido para usar "userId"
     next();
   } catch {
     res.status(401).json({ error: 'Token inválido' });
@@ -131,7 +115,7 @@ app.post('/tasks', authMiddleware, async (req, res) => {
 });
 
 app.get('/tasks', authMiddleware, async (req, res) => {
-  const { priority, status } = req.query; // Filtros de consulta
+  const { priority, status } = req.query;
   const filter = { userId: req.userId };
 
   if (priority) filter.priority = priority;
@@ -144,7 +128,6 @@ app.get('/tasks', authMiddleware, async (req, res) => {
     res.status(400).json({ error: 'Error al obtener tareas' });
   }
 });
-
 
 app.put('/tasks/:id', authMiddleware, async (req, res) => {
   try {
