@@ -1,49 +1,30 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';  // Actualización: usar useNavigate
 
-const Login = ({ setToken }) => {
-  const [username, setUsername] = useState('');
+const Login = () => {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();  // Actualización: usar useNavigate
 
-  // Función para manejar el login
-  const handleLogin = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/login', {
-        username,
-        password,
-      });
-      // Guardar el token recibido
-      localStorage.setItem('token', response.data.token); // Guardar el token en el localStorage
-      setToken(response.data.token); // Establecer el token en el estado
-      window.location.href = '/tasks'; // Redirigir al usuario a la página de tareas
+      const res = await axios.post('http://localhost:5000/login', { email, password });
+      localStorage.setItem('token', res.data.token);  // Guardar token en el localStorage
+      navigate('/tasks');  // Actualización: reemplazar history.push() con navigate()
     } catch (error) {
-      console.error('Error al hacer login:', error.response?.data?.message || error.message);
+      alert('Error al iniciar sesión');
     }
   };
 
   return (
     <div>
       <h2>Iniciar sesión</h2>
-      <form onSubmit={(e) => e.preventDefault()}>
-        <div>
-          <label>Usuario:</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Contraseña:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" onClick={handleLogin}>Iniciar sesión</button>
+      <form onSubmit={handleSubmit}>
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required />
+        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Contraseña" required />
+        <button type="submit">Iniciar sesión</button>
       </form>
     </div>
   );
