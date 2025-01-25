@@ -12,11 +12,12 @@ const Register = () => {
     e.preventDefault();
     try {
       await axios.post('http://localhost:5000/register', { name, email, password });
-      history.push('/login');
+      navigate('/login'); // Cambia history.push por navigate
     } catch (error) {
-      alert('Error al registrar el usuario');
+      alert('Error al registrar el usuario'); // Puedes personalizar el mensaje de error según la respuesta del backend
     }
   };
+  
 
   return (
     <div>
