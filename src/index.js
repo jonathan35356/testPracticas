@@ -10,6 +10,9 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+
+
+
 const JWT_SECRET = 'secretkey'; // Definimos la clave secreta en una constante
 
 const url = 'mongodb://localhost:27017/task_manager'; // Cambia el nombre de la base de datos según lo que uses
