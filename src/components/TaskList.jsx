@@ -1,26 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // Importamos useNavigate
+import { useNavigate } from 'react-router-dom';
 
 const TaskList = ({ token }) => {
-  const [tasks, setTasks] = useState([]); // Estado para almacenar las tareas
+  const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
     dueDate: '',
     priority: 'Baja',
   });
-  const [error, setError] = useState(null); // Estado para manejar errores
+  const [error, setError] = useState(null);
 
-  const navigate = useNavigate(); // Hook para redirección
+  const navigate = useNavigate();
 
-  // Función para obtener las tareas
   const fetchTasks = async () => {
     if (!token) {
       setError('Token no válido. Por favor, inicia sesión.');
       return;
     }
-
     try {
       const response = await axios.get('http://localhost:5000/tasks', {
         headers: { Authorization: `Bearer ${token}` },
@@ -32,32 +30,55 @@ const TaskList = ({ token }) => {
     }
   };
 
-  // Función para crear una nueva tarea
   const handleCreateTask = async (e) => {
     e.preventDefault();
     if (!newTask.title || !newTask.description || !newTask.dueDate || !newTask.priority) {
       alert('Por favor, completa todos los campos.');
       return;
     }
-
     try {
       await axios.post('http://localhost:5000/tasks', newTask, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      fetchTasks(); // Refrescar la lista de tareas después de crear una nueva
-      setNewTask({ title: '', description: '', dueDate: '', priority: 'Baja' }); // Limpiar el formulario
+      fetchTasks();
+      setNewTask({ title: '', description: '', dueDate: '', priority: 'Baja' });
     } catch (error) {
       console.error('Error creando tarea:', error);
       setError('Error al crear la tarea.');
     }
   };
 
-  // Función para redirigir a la edición de tarea
   const handleEditTask = (taskId) => {
     navigate(`/edit-task/${taskId}`);
   };
 
-  // Llamar a fetchTasks al cargar el componente o cuando cambie el token
+  const handleDeleteTask = async (taskId) => {
+    const confirmDelete = window.confirm('¿Estás seguro de que quieres eliminar esta tarea?');
+    if (!confirmDelete) return;
+    try {
+      await axios.delete(`http://localhost:5000/tasks/${taskId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchTasks();
+    } catch (error) {
+      console.error('Error eliminando tarea:', error);
+      setError('Error al eliminar la tarea.');
+    }
+  };
+
+  const handleChangeStatus = async (taskId, currentStatus) => {
+    const newStatus = currentStatus === 'Pendiente' ? 'Completada' : 'Pendiente';
+    try {
+      await axios.put(`http://localhost:5000/tasks/${taskId}`, { status: newStatus }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchTasks(); // Refrescar la lista de tareas después de cambiar el estado
+    } catch (error) {
+      console.error('Error cambiando estado de tarea:', error);
+      setError('Error al cambiar el estado de la tarea.');
+    }
+  };
+
   useEffect(() => {
     fetchTasks();
   }, [token]);
@@ -65,37 +86,14 @@ const TaskList = ({ token }) => {
   return (
     <div>
       <h2>Tareas</h2>
-
-      {/* Mostrar errores si existen */}
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
-      {/* Formulario para crear tarea */}
       <h3>Crear nueva tarea</h3>
       <form onSubmit={handleCreateTask}>
-        <input 
-          type="text" 
-          value={newTask.title} 
-          onChange={(e) => setNewTask({ ...newTask, title: e.target.value })} 
-          placeholder="Título" 
-          required 
-        />
-        <input 
-          type="text" 
-          value={newTask.description} 
-          onChange={(e) => setNewTask({ ...newTask, description: e.target.value })} 
-          placeholder="Descripción" 
-          required 
-        />
-        <input 
-          type="date" 
-          value={newTask.dueDate} 
-          onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })} 
-          required 
-        />
-        <select 
-          value={newTask.priority} 
-          onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
-        >
+        <input type="text" value={newTask.title} onChange={(e) => setNewTask({ ...newTask, title: e.target.value })} placeholder="Título" required />
+        <input type="text" value={newTask.description} onChange={(e) => setNewTask({ ...newTask, description: e.target.value })} placeholder="Descripción" required />
+        <input type="date" value={newTask.dueDate} onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })} required />
+        <select value={newTask.priority} onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}>
           <option value="Baja">Baja</option>
           <option value="Media">Media</option>
           <option value="Alta">Alta</option>
@@ -103,7 +101,6 @@ const TaskList = ({ token }) => {
         <button type="submit">Crear tarea</button>
       </form>
 
-      {/* Mostrar las tareas */}
       <div>
         {tasks.map((task) => (
           <div key={task._id} style={{ border: '1px solid #ccc', margin: '10px', padding: '10px' }}>
@@ -112,7 +109,14 @@ const TaskList = ({ token }) => {
             <p>Fecha de vencimiento: {new Date(task.dueDate).toLocaleDateString()}</p>
             <p>Prioridad: {task.priority}</p>
             <p>Estado: {task.status}</p>
-            <button onClick={() => handleEditTask(task._id)}>Editar tarea</button> {/* Botón para editar */}
+            <button onClick={() => handleEditTask(task._id)}>Editar tarea</button>
+            <button onClick={() => handleDeleteTask(task._id)} style={{ marginLeft: '10px', color: 'red' }}>Eliminar tarea</button>
+            <button
+              onClick={() => handleChangeStatus(task._id, task.status)}
+              style={{ marginLeft: '10px', color: 'blue' }}
+            >
+              Cambiar estado a {task.status === 'Pendiente' ? 'Completada' : 'Pendiente'}
+            </button>
           </div>
         ))}
       </div>
