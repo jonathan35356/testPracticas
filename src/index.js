@@ -10,14 +10,12 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+const JWT_SECRET = 'secretkey';
 
+const url = 'mongodb://localhost:27017/task_manager';
 
-
-const JWT_SECRET = 'secretkey'; // Definimos la clave secreta en una constante
-
-const url = 'mongodb://localhost:27017/task_manager'; // Cambia el nombre de la base de datos según lo que uses
-
-mongoose.connect(url)
+mongoose
+  .connect(url)
   .then(() => {
     console.log('Conexión exitosa a MongoDB');
   })
@@ -80,7 +78,6 @@ app.post('/login', async (req, res) => {
     return res.status(401).json({ message: 'Contraseña incorrecta' });
   }
 
-  // Generar el token JWT usando la clave secreta
   const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
 
   res.json({ token });
@@ -96,9 +93,8 @@ const authMiddleware = (req, res, next) => {
   const token = authHeader.split(' ')[1];
 
   try {
-    // Verificar el token usando la clave secreta
     const verified = jwt.verify(token, JWT_SECRET);
-    req.userId = verified.userId; // Corregido para usar "userId"
+    req.userId = verified.userId;
     next();
   } catch {
     res.status(401).json({ error: 'Token inválido' });
@@ -132,18 +128,33 @@ app.get('/tasks', authMiddleware, async (req, res) => {
   }
 });
 
+// **Nueva ruta: obtener tarea por ID**
+app.get('/tasks/:id', authMiddleware, async (req, res) => {
+  try {
+    const task = await Task.findOne({ _id: req.params.id, userId: req.userId });
+    if (!task) {
+      return res.status(404).json({ error: 'Tarea no encontrada' });
+    }
+    res.json(task);
+  } catch (error) {
+    res.status(400).json({ error: 'Error al obtener tarea' });
+  }
+});
+
 app.put('/tasks/:id', authMiddleware, async (req, res) => {
   try {
-    const task = await Task.findOneAndUpdate(
-      { _id: req.params.id, userId: req.userId },
-      req.body,
-      { new: true }
-    );
-    res.json(task);
+    const task = await Task.findOne({ _id: req.params.id, userId: req.userId });
+    if (!task) {
+      return res.status(404).json({ error: 'Tarea no encontrada' });
+    }
+    const updatedTask = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(updatedTask);
   } catch (error) {
     res.status(400).json({ error: 'Error al actualizar tarea' });
   }
 });
+
+
 
 app.delete('/tasks/:id', authMiddleware, async (req, res) => {
   try {

@@ -5,6 +5,7 @@ import TaskList from './components/TaskList';
 import TaskForm from './components/TaskForm';
 import Register from './components/Register';
 import AddTask from './components/AddTask';
+import EditTask from './components/EditTask'
 
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem('token') || ''); // Recupera el token desde el almacenamiento local
@@ -17,6 +18,7 @@ const App = () => {
         <Route path="/tasks" element={<TaskList token={token} />} />
         <Route path="/add-task" element={<AddTask/>} />
         <Route path="/tasks/new" element={<TaskForm />} />
+        <Route path="/edit-task/:id" element={<EditTask token={token} />} />
       </Routes>
     </Router>
   );
