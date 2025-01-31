@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import '../styles/TaskList.css';
 
 const TaskList = ({ token }) => {
   const [tasks, setTasks] = useState([]);
@@ -11,6 +12,8 @@ const TaskList = ({ token }) => {
     priority: 'Baja',
   });
   const [error, setError] = useState(null);
+  const [priorityFilter, setPriorityFilter] = useState('Todos');
+  const [statusFilter, setStatusFilter] = useState('Todos');
 
   const navigate = useNavigate();
 
@@ -72,12 +75,18 @@ const TaskList = ({ token }) => {
       await axios.put(`http://localhost:5000/tasks/${taskId}`, { status: newStatus }, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      fetchTasks(); // Refrescar la lista de tareas después de cambiar el estado
+      fetchTasks();
     } catch (error) {
       console.error('Error cambiando estado de tarea:', error);
       setError('Error al cambiar el estado de la tarea.');
     }
   };
+
+  const filteredTasks = tasks.filter((task) => {
+    const filterByPriority = priorityFilter === 'Todos' || task.priority === priorityFilter;
+    const filterByStatus = statusFilter === 'Todos' || task.status === statusFilter;
+    return filterByPriority && filterByStatus;
+  });
 
   useEffect(() => {
     fetchTasks();
@@ -101,14 +110,37 @@ const TaskList = ({ token }) => {
         <button type="submit">Crear tarea</button>
       </form>
 
+      <h3>Filtrar tareas</h3>
       <div>
-        {tasks.map((task) => (
+        <label>
+          Prioridad:
+          <select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}>
+            <option value="Todos">Todos</option>
+            <option value="Baja">Baja</option>
+            <option value="Media">Media</option>
+            <option value="Alta">Alta</option>
+          </select>
+        </label>
+        <label>
+          Estado:
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <option value="Todos">Todos</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="Completada">Completada</option>
+          </select>
+        </label>
+      </div>
+
+      <div>
+        {filteredTasks.map((task) => (
           <div key={task._id} style={{ border: '1px solid #ccc', margin: '10px', padding: '10px' }}>
             <h3>{task.title}</h3>
             <p>{task.description}</p>
             <p>Fecha de vencimiento: {new Date(task.dueDate).toLocaleDateString()}</p>
             <p>Prioridad: {task.priority}</p>
-            <p>Estado: {task.status}</p>
+            <p className={task.status === 'Pendiente' ? 'task-status-pendiente' : 'task-status-completada'}>
+              Estado: {task.status}
+            </p>
             <button onClick={() => handleEditTask(task._id)}>Editar tarea</button>
             <button onClick={() => handleDeleteTask(task._id)} style={{ marginLeft: '10px', color: 'red' }}>Eliminar tarea</button>
             <button

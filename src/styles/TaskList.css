@@ -1,0 +1,152 @@
+/* Estilos generales */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f7fa;
+  }
+  
+  h2, h3 {
+    color: #333;
+    font-size: 1.8em;
+  }
+  
+  h3 {
+    margin-top: 20px;
+  }
+  
+  /* Formulario */
+  form {
+    display: flex;
+    flex-direction: column;
+    max-width: 400px;
+    margin: 20px auto;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  form input,
+  form select,
+  form button {
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+  }
+  
+  form input[type="text"],
+  form select {
+    width: 100%;
+  }
+  
+  form button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  form button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Mensajes de error */
+  p {
+    color: #333;
+  }
+  
+  /* Tareas */
+  div {
+    margin: 20px auto;
+    max-width: 800px;
+  }
+  
+  div > div {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  }
+  
+  h3 {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+  }
+  
+  button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+  }
+  
+  button:hover {
+    opacity: 0.9;
+  }
+  
+  button:focus {
+    outline: none;
+  }
+  
+  button:nth-child(1) {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  button:nth-child(2) {
+    background-color: #dc3545;
+    color: white;
+  }
+  
+  button:nth-child(3) {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  button:nth-child(1):hover {
+    background-color: #218838;
+  }
+  
+  button:nth-child(2):hover {
+    background-color: #c82333;
+  }
+  
+  button:nth-child(3):hover {
+    background-color: #0056b3;
+  }
+  
+  /* Estilo de estado */
+  p {
+    font-size: 1em;
+    margin: 5px 0;
+  }
+  
+  /* Estilo de tareas pendientes y completadas */
+  .task-status-pendiente {
+    background-color: #ffcc00; /* Amarillo para tareas pendientes */
+    color: #333;
+    padding: 5px;
+    border-radius: 5px;
+    font-weight: bold;
+  }
+  
+  .task-status-completada {
+    background-color: #28a745; /* Verde para tareas completadas */
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+    font-weight: bold;
+  }
+  
+  /* Estilo del error */
+  .error-message {
+    color: red;
+    margin-top: 20px;
+  }
+  

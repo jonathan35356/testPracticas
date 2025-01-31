@@ -43,7 +43,7 @@ const EditTask = ({ token }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
       alert('Tarea actualizada correctamente.');
-      navigate('/'); // Redirigir a la lista de tareas después de actualizar
+      navigate('/tasks'); 
     } catch (error) {
       setError('Error al actualizar la tarea. Por favor, inténtalo de nuevo.');
       console.error(error);
@@ -63,16 +63,16 @@ const EditTask = ({ token }) => {
   if (error) {
     return <div>
       <p>{error}</p>
-      <button onClick={() => navigate('/')}>Volver a la lista de tareas</button>
+      <button onClick={() => navigate('/tasks')}>Volver a la lista de tareas</button>
     </div>;
   }
 
-  // Si no se encuentra la tarea
+
   if (!task) {
     return <p>No se pudo cargar la tarea.</p>;
   }
 
-  // Formulario de edición
+
   return (
     <div>
       <h2>Editar Tarea</h2>
